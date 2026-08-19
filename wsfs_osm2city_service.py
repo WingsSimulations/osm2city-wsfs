@@ -223,7 +223,7 @@ def generate_tile_mesh(payload: dict) -> dict:
             b.write_facades(geom_collector)
             b.write_roof(roof_manager, geom_collector)
 
-            # Compute AABB for aircraft collision
+            # Compute AABB for aircraft collision in Simulator Coordinates (X=East, Y=Up, Z=-North)
             pts = np.array(b.pts_outer)
             min_x, max_x = float(pts[:, 0].min()), float(pts[:, 0].max())
             min_z, max_z = float(-pts[:, 1].max()), float(-pts[:, 1].min())
@@ -234,54 +234,63 @@ def generate_tile_mesh(payload: dict) -> dict:
             pass
 
     geom_collector.process()
-    gltf_writer = gio.GLTFWriter(geom_collector.get_shallow_c_vertices_clone(),
-                                 geom_collector.get_shallow_c_faces_clone(),
-                                 geom_collector.smooth_edges)
-    gltf_writer._transform_to_arrays()
-    gltf_writer._compute_normals()
 
     verts_out = []
     indices_out = []
-    base_idx = 0
+    vert_map = {}
 
-    for cid, v_arr in gltf_writer._vertices_by_covering.items():
-        n_arr = gltf_writer._normals_by_covering[cid]
-        uv_arr = gltf_writer._uvs_by_covering[cid]
-        i_arr = gltf_writer._face_indices_by_covering[cid]
-        cov_obj = gltf_writer._coverings[cid]
-
-        # Material ID for shader: 1.0 (facade), 2.0 (glass/modern), 3.0 (roof tile), 4.0 (slate), 7.0 (flat roof)
-        cov_name = cov_obj.name.lower()
+    # Extract geometry directly from osm2city faces in true Simulator Coordinates
+    for fid, c_face in geom_collector._c_faces.items():
+        if len(c_face.vertices) < 3:
+            continue
+        cov_name = c_face.covering.name.lower()
         if "roof" in cov_name:
-            if "tile" in cov_name or "red" in cov_name:
-                mat_id = 3.0
-            elif "slate" in cov_name or "dark" in cov_name:
-                mat_id = 4.0
-            else:
-                mat_id = 7.0
+            mat_id = 3.0
         elif "glass" in cov_name or "office" in cov_name or "modern" in cov_name:
             mat_id = 2.0
         else:
             mat_id = 1.0
 
-        for i in range(len(v_arr)):
-            # GLTFWriter outputs cartesian_to_gltf_in_fgfs: [0]=-North, [1]=East, [2]=Elev
-            # In OpenGL coordinates: X=East, Y=Elev, Z=-North
-            vx = float(v_arr[i][1]) / cos_lat
-            vy = float(v_arr[i][2])          # Elevation
-            vz = float(v_arr[i][0]) / cos_lat # -North
-            nx = float(n_arr[i][1])
-            ny = float(n_arr[i][2])
-            nz = float(n_arr[i][0])
+        v_pts = []
+        for v in c_face.vertices:
+            # Simulator coordinate mapping:
+            # X = East (c_vertex.x / cos_lat)
+            # Y = Elev (c_vertex.elev)
+            # Z = -North (-c_vertex.y / cos_lat)
+            vx = float(v.x) / cos_lat
+            vy = float(v.elev)
+            vz = float(-v.y) / cos_lat
+            v_pts.append(np.array([vx, vy, vz]))
 
-            # Invert V back for OpenGL standard bottom-up texture coordinates
-            u = float(uv_arr[i][0])
-            v = 1.0 - float(uv_arr[i][1])
-            verts_out.extend([vx, vy, vz, nx, ny, nz, u, v, mat_id])
+        # Calculate geometric face normal in simulator space
+        e1 = v_pts[1] - v_pts[0]
+        e2 = v_pts[2] - v_pts[0]
+        fn = np.cross(e1, e2)
+        norm_len = np.linalg.norm(fn)
+        if norm_len > 1e-6:
+            fn /= norm_len
+        else:
+            fn = np.array([0.0, 1.0, 0.0])
 
-        for idx in i_arr:
-            indices_out.append(base_idx + int(idx))
-        base_idx += len(v_arr)
+        face_indices = []
+        for idx, v in enumerate(c_face.vertices):
+            vx, vy, vz = v_pts[idx]
+            # Use raw un-stretched texture coordinates directly from osm2city
+            u = float(v.ct_map.x)
+            v_coord = float(v.ct_map.y)
+
+            vert_key = (round(vx, 3), round(vy, 3), round(vz, 3),
+                        round(fn[0], 3), round(fn[1], 3), round(fn[2], 3),
+                        round(u, 4), round(v_coord, 4), mat_id)
+            if vert_key not in vert_map:
+                vert_idx = len(verts_out) // 9
+                vert_map[vert_key] = vert_idx
+                verts_out.extend([vx, vy, vz, float(fn[0]), float(fn[1]), float(fn[2]), u, v_coord, mat_id])
+            face_indices.append(vert_map[vert_key])
+
+        # Triangulate face
+        for i in range(1, len(face_indices) - 1):
+            indices_out.extend([face_indices[0], face_indices[i], face_indices[i+1]])
 
     return {
         "success": True,
