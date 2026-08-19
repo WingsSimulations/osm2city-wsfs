@@ -1,0 +1,16 @@
+# Python cache files
+*__pycache__*
+
+/.idea/
+/doc/manual/build/
+
+# Python build artifacts
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+dist/
+build/
+
+# Virtual environment
+.venv/

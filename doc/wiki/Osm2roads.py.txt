@@ -1,0 +1,4 @@
+{{OSM Navigation}}
+Creates textured roads, railway tracks, and bridges from OSM data. 
+
+This script is a part of [[Osm2city.py]], reuses some of its infrastructure and therefore the repository, installation and workflow are basically the same and will therefore not be described here.

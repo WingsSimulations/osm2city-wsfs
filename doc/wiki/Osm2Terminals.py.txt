@@ -1,0 +1,65 @@
+
+[[File:Adg-KSFO-0.png|right|thumb|[[Airport Diagram Generator]] first page of KSFO]]
+{{OSM Navigation}}
+{{Stub}}
+
+== Problem ==
+
+Compared to fgfs, in X-Plane/FSX, almost all airports have some buildings and a tower, but mostly they are universal buildings: ie they all look the same, because they are made of generic "bricks". 
+
+The other day I was looking through the shared objects database in FG and found a plethora of hangars, some towers, but no universal ie generic-looking terminal buildings [... ] but if there would be some universal terminal-building it would be much easier to "populate" a large amount of airports. After all, a universal terminal is better than no terminal at all, specially since most ppl dont know what the real thing looks like <ref>{{cite web
+  |url    =  https://forum.flightgear.org/viewtopic.php?p=169295#p169295 
+  |title  =  <nowiki> Universal terminal building? </nowiki> 
+  |author =  <nowiki> mischka </nowiki> 
+  |date   =  Oct 25th, 2012 
+  |added  =  Oct 25th, 2012 
+  |script_version = 0.40 
+  }}</ref>
+
+== Idea ==
+How about using generated OSM Buildings for all airports that dont have static models yet ?<ref>{{cite web
+  |url    =  https://forum.flightgear.org/viewtopic.php?p=192600#p192600 
+  |title  =  <nowiki> Re: OSM buidings EHLE </nowiki> 
+  |author =  <nowiki> pommesschranke </nowiki> 
+  |date   =  Oct 26th, 2013 
+  |added  =  Oct 26th, 2013 
+  |script_version = 0.40 
+  }}</ref>
+
+Perhaps we could use OSM to create terminal buildings procedurally.<ref>{{cite web
+  |url    =  https://forum.flightgear.org/viewtopic.php?p=169395#p169395 
+  |title  =  <nowiki> Re: Universal terminal building? </nowiki> 
+  |author =  <nowiki> statto </nowiki> 
+  |date   =  Oct 26th, 2012 
+  |added  =  Oct 26th, 2012 
+  |script_version = 0.40 
+  }}</ref>
+
+This idea (not specific to OSM though) has been previously discussed on the devel list, and even a prototype has been implemented before (6 years ago), see:<ref>{{cite web
+  |url    =  https://forum.flightgear.org/viewtopic.php?p=169396#p169396 
+  |title  =  <nowiki> Re: Universal terminal building? </nowiki> 
+  |author =  <nowiki> Hooray </nowiki> 
+  |date   =  Oct 26th, 2012 
+  |added  =  Oct 26th, 2012 
+  |script_version = 0.40 
+  }}</ref>
+
+* http://www.mail-archive.com/flightgear-devel@lists.sourceforge.net/msg00381.html
+* http://www.mail-archive.com/flightgear-devel@lists.sourceforge.net/msg01685.html
+* http://www.mail-archive.com/flightgear-devel@lists.sourceforge.net/msg01916.html
+
+== Motivation ==
+it's actually incredibly easy to do using OSM - you'd just need to collect the shapefiles of airport terminals and apply a generic texture to the shapefile-to-building generator. It won't look great, but considering how few terminals we actually have around the world, I think this would at the very least be a start - and I could make all of the buildings available for people to edit and improve. OSM licensing would be the only issue.<ref>{{cite web
+  |url    =  https://forum.flightgear.org/viewtopic.php?p=169431#p169431 
+  |title  =  <nowiki> Re: Universal terminal building? </nowiki> 
+  |author =  <nowiki> statto </nowiki> 
+  |date   =  Oct 27th, 2012 
+  |added  =  Oct 27th, 2012 
+  |script_version = 0.40 
+  }}</ref>
+
+== References ==
+* {{Search|mode=forum|keywords=svg2ac}}
+* {{Search|mode=mailing lists|keywords=svg2ac}}
+
+{{Appendix}}

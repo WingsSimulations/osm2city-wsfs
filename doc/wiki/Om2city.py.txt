@@ -1,0 +1,189 @@
+{{OSM Navigation}}
+[[File:LOWI with OSM buildings.jpg|thumb|LOWI with OSM buildings]]
+
+This Python script takes OpenStreetMap floorplans and creates 3d buildings ready for use in FlightGear.
+
+The development [https://gitlab.com/fg-radi/osm2city repository] is hosted on gitlab.
+Forum thread [http://forum.flightgear.org/viewtopic.php?f=5&t=22809 osm2city.py development].
+Written in Python 3.5, developed on GNU/Linux. It should also run on Windows and Mac OSX.
+
+It's at a rather early stage of development. There's no GUI, everything is controlled by an input file. But it produces realistic city layouts (after all, it uses realistic data). The whole process -- from scratch to flying in FG -- for a city the size of LOWI takes perhaps 30 min, including maybe a total of 15 min manual work.
+
+It has been tested with Dresden, Germany (EDDC) and Innsbruck, Austria (LOWI). Both areas are now populated with about 50,000 buildings. Rendering this in FG is quite demanding. The FG process eats ~2.8GB RAM when flying in those areas, the download is ~50 MB each.
+
+== News ==
+=== Status 10/2014 ===
+New features: 
+* textures reside in a separate [https://gitlab.com/fg-radi/osm2city-data]
+* the recommended elevation probing method is ELEV_MODE=FgelevCaching
+* roads.py is now quite usable
+* SKIP_LIST can contain OSM_IDs
+
+=== Status 06/2014 ===
+I'm currently adding textured roads, railroads, intersections and bridges.
+
+{{FGCquote
+  | the shader is now on osm2city's git (in fgdata/). Again -- all credit goes to Emilian. He is improving the shader side, I will continue on the model side. So this is very much work in progress.<br><br>The shader requires the default renderer. No ALS/Rembrandt yet.<br><br>Get the LOWI roads pack (including the shader) here:<br>[https://dl.dropboxusercontent.com/u/24846517/fg/osm2city/LOWI_roads.tar.gz https://dl.dropboxusercontent.com/u/24846517/fg/osm2city/LOWI_roads.tar.gz]<br><br>The fgdata/ folder goes to your $FGDATA.<br>In roads.xml enable either the lightmap or the traffic shader.
+  |{{cite web |url=http://forum.flightgear.org/viewtopic.php?p=212460#p212460
+     |title=<nowiki>Re: osm2city.py development</nowiki>
+     |author=<nowiki>radi</nowiki>
+     |date=<nowiki>Fri Jun 13</nowiki>
+   }}
+}}
+
+{{FGCquote
+  |Creating your own road network is a bit cumbersome ATM, I'll try to make it more general in the next few days. But if you're really, really keen on it: <br><ul><li> get latest osm2city git</li><li> run roads.py -f your-parameters-file.</li><li> if you also create buildings, make sure to use the same BOUNDARY_* parameters for both osm2city.py and roads.py. Otherwise, buildings and roads might be misaligned. Basically, if your OSM file contains both roads and buildings, you can just use one parameters file.</li><li> roads.py will print an OBJECT_STATIC line, add this to your .stg (appears to add itself)</li><li> copy roads.ac to your scenery</li><li> copy roads.xml and tex/ from the LOWI roads pack to your scenery (roads.ac and .xml copy themselves)</li></ul>
+  |{{cite web |url=http://forum.flightgear.org/viewtopic.php?p=212460#p212460
+     |title=<nowiki>Re: osm2city.py development</nowiki>
+     |author=<nowiki>radi</nowiki>
+     |date=<nowiki>Fri Jun 13</nowiki>
+   }}
+}}
+
+=== Status 04/2014 ===
+[[File:LOWI with OSM buildings from FL300.jpg|thumb|Aerial view of LOWI, with 60k OSM buildings]]
+Following Mathias' suggestion at FS Weekend 2013, I've now changed the code such that it merges all buildings per (osm2city) tile into one object, reducing the number of drawables from O(10k) to O(10). That indeed gives a nice speed-up. In fact, I'm overwhelmed by what's possible now -- here's a scene looking down at LOWI from FL300 showing 60k buildings. Plain Scenery 2.0 gives 19 fps on i7 Intel HD 5000 2560x1440. With buildings framerate goes down to 14.
+
+[[File:LOWI with OSM buidings one object per tile.jpg|thumb|Approaching LOWI, with 60k OSM buildings]]
+The second scene, approaching LOWI from the east, went from 30 fps without buildings down to 20 fps.
+
+=== Status 10/2013 ===
+Currently data is processed offline beforehand. Basically, it parses the OSM
+xml, generates a list of building outlines, discards some based on their area,
+simplifies the outlines, clusters them into ~500x500m blocks and different LODs,
+then writes .ac, .xml, and .stgs. <del>OSM parsing is by far the most expensive,
+easily taking 10 minutes for 50k buildings. Once that's done, the remaining parts take maybe 1 minute in total.
+</del> (Some optimization gave a huge speedup).
+
+At the moment, the code knows only the floor plans. <del>No streets</del>, no runways, no
+land-use. But it'll certainly process such data in the future, and then could
+use some heuristics (some OSM buildings are labeled "Terminal 1" or so) to apply
+terminal/hangar textures to buildings at airports. This way we could rather easily populate some airports with
+'semi-generic' terminal/hangar buildings.
+
+== Features ==
+* reads buildings from OSM. Honors height and level tags, reads relations ('buildings with holes')
+* reads existing .stg, won't place OSM building if there's a static model nearby
+* reads pre-calculated terrain elevation: places buildings at correct elevation
+* simplify/automate elevation probing by using fgelev
+* LOD animation based on building height and area (see below)
+* cluster a number of buildings into a single .ac files. Clusters overlap to alleviate sharp LOD borders
+* complex sloped roof generation (using Olivier Teboul's implementation of the straight skeleton algorithm)
+* texture manager: DB of facade/roof textures
+:* ~10 different, hi-res facade textures, some roof textures
+:* find matching texture for given building (number of levels, modern/old building, etc)
+:* find matching roof texture for given facade texture
+* basic lightmap support
+* obstruction lights on tall buildings
+* command line interface and parameters file (thanks to forum user vanosten)
+* shows statistics on processed buildings
+* writes .ac, .xml, .stg
+
+== Planned Features ==
+(in random order)
+* more complex facade generation. Currently, all sides get same texture  {{not done}}
+* Rembrandt lighting {{not done}}
+* put a piece of matching ground texture around buildings ('garden') {{progressbar|10}}
+* put shared models if/where OSM indicates so: gas stations... {{not done}}
+* geometry cleanup, simplify too complex buildings {{done}}
+* use residential/industrial/commercial tags/areas. ATM, all is residential. {{not done}}
+* geometry cleanup, simplify too complex buildings {{done}}
+* Batch processing of greater areas including downloads {{done}}
+* use more LOD levels, write them to different .ac so users can easily reduce building density, therefore improve performance {{progressbar|50}}
+:* put large buildings into one ac, sort/rate buildings by stand-out-ness {{done}}
+:* then ship light/med/full .stg {{not done}}
+* mid-term: develop this into a city-engine that procedurally generates a city based on OSM roads. {{not done}}
+:* read, drape, texture roads and railways {{progressbar|70}}
+:* texture road intersections  {{not done}}
+:* illuminate roads {{not done}}
+:* procedural bridges  {{progressbar|50}}
+:* place shared models along roads if no OSM data available {{not done}}
+* long-term: integrate into FG to do all this on the fly. {{not done}}
+
+== LOD Scheme ==
+FlightGear knows three standard LOD: bare, rough and detail. 'Bare' sets the drawing distance of the terrain, which may easily be 50 km or more. Drawing buildings 50 km out makes little sense (unless they are ''really'' tall), so we shouldn't use this level here. Of the remaining two standard levels, 'rough' is used for large and/or tall buildings, and 'detail' for smaller ones.
+
+Osm2city can generate complex roof shapes. This increases the poly count further, and I believe it's a good idea to use another LOD 'roof' for complex roofs. Fortunately, we can change every aspect of FlightGear, and adding another LOD is easy. Use the FG command line
+ --prop:double:/sim/rendering/static-lod/roof=2000
+to set the distance for 'roof' to 2 km. If you want to adjust it via FG's GUI, copy static-lod.xml (from osm2city's git repo) to $FGDATA/gui/dialogs.
+
+== Ideas ==
+* nearby hi-rise objects of similar shape get same texture? Probably too special a feature.
+* bump map/reflection effects?
+* a mode that generally uses shared models? If we find a shared models of matching floorplan, use this instead of creating a new, individual building? Will break clusters.
+* a terrasync-like thing? Users get OSM buildings
+(where available) on-the-fly? Might be quite costly in terms of runtime performance and bandwidth. The OSM download (buildings only!) is
+~40MB for the 25x25km LOWI area.
+
+== Installation and Workflow ==
+Comprehensive documentation can be found on [http://osm2city.readthedocs.io/en/latest/index.html osm2citiy's Read The Docs site].
+
+== Support and troubleshooting ==
+Time permitting, we can provide limited support on the [http://forum.flightgear.org/viewtopic.php?f=5&t=22809 Forums]. Please don't use PM for support questions.
+
+Before you ask a question, make sure you read this wiki page. If your question is not covered here, tell us as much as possible about the problem you're facing. Which steps have you taken to solve it? What is the exact error message? What operating system? Screenshots? 
+
+=== FGElev crashes ===
+
+<syntaxhighlight lang="bash">
+CRITICAL:root:1173 -95.5767 37.0965
+CRITICAL:root:fgelev returned <>, resulting in list index out of range. Did fgelev start OK (Record : 1173)?
+</syntaxhighlight>
+The first line is the last input to fgelev. 
+Try running fgelev directly:
+<syntaxhighlight lang="bash">
+/path/to/fgelev --expire 1000 --fg-root $FG_ROOT --fg-scenery $FG_SCENERY
+</syntaxhighlight>
+then enter the line last sent to fgelev. 
+<syntaxhighlight lang="bash">
+1173 -95.5767 37.0965
+</syntaxhighlight>
+The response should look like 
+<syntaxhighlight lang="bash">
+1173: 226.793
+</syntaxhighlight>
+
+=== Buildings are generated, but they sit below the ground. I'm using ELEV_MODE = FgelevCaching. ===
+
+Try running fgelev directly:
+<syntaxhighlight lang="bash">
+/path/to/fgelev --expire 1000 --fg-root $FG_ROOT --fg-scenery $FG_SCENERY
+</syntaxhighlight>
+then enter
+<syntaxhighlight lang="bash">
+0 $lon $lat
+</syntaxhighlight>
+where $lon and $lat are coordinates in the area you want to generate. See if it returns a sane value. If it does, double-check PATH_TO_SCENERY and $FG_ROOT.
+
+=== Buildings/roads have no texture. I get errors "osgDB ac3d reader: could not find texture "tex/atlas_facades.png". ===
+
+Copy or link the tex/ folder into the objects folder where the .stg files were created, such that you have $FG_SCENERY/Objects/eXXXnXX/eXXXnXX/tex/. Note that buildings might have been created in more than one folder, e.g. in e011n47 and e011n48. You must have a tex/ folder in each of them. On Windows it is sufficient to have one copy in $FG_ROOT.
+
+== Improve frame rate ==
+* adjust LOD ranges in FG
+* decrease MAX_OBJECTS, increase LOD_*
+(- use larger/smaller tiles? Tradeoff between distance calculations/xml parsing and GPU)
+
+== Contributing ==
+You know some Python? Or you're keen on writing docs? Contact the team on the FG forum.
+None of the above? Take [[Howto:Create_textures_from_photos|pictures]] of buildings where you live and [[Osm2city.py Textures|create textures]]! I'm especially interested in south-east asian style architecture, as I'm planning to populate Hong Kong Kai Tak (VHXX) in the future.
+
+== Related content ==
+=== Wiki articles ===
+* [[Areas populated with osm2city scenery]]
+* [[AutoGen Scenery for FlightGear]]
+* [[OpenStreetMap buildings]]
+* [[Random Buildings]]
+* [[Using OSM Vector Data in FlightGear]]
+
+=== Forum topics ===
+* [http://forum.flightgear.org/viewtopic.php?f=5&t=21131 OSM buidings EHLE]
+* [http://forum.flightgear.org/viewtopic.php?f=5&t=22809 osm2city.py development]
+* [http://forum.flightgear.org/viewtopic.php?f=5&t=19625 LOWI city buildings]
+* [http://forum.flightgear.org/viewtopic.php?f=38&t=8837 <nowiki>[</nowiki>Proposal<nowiki>]</nowiki> Autogen Cities using PixelCity]
+* [http://forum.flightgear.org/viewtopic.php?f=5&t=17598 Procedural buildings in OSM before part of Scenery]
+
+=== Mailing list threads ===
+* [http://sourceforge.net/p/flightgear/mailman/message/30825768/ <nowiki>[</nowiki>Flightgear-devel<nowiki>]</nowiki> osm2city.py]
+
+[[Category:Scenery software]]

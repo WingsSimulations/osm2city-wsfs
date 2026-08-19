@@ -1,0 +1,97 @@
+{{OSM Navigation}}
+[[File:Drag lift winter in osm2pylons.png|thumb|osm2pylons generated scenery with drag lifts]]
+[[File:Power lines summer in osm2pylons.png|thumb|osm2pylons generated scenery with minor and major power lines]]
+
+Populates a FlightGear scenery offline with cables, pylons etc. related to power lines and aerialways based on OpenStreetMap data. 
+
+This script is a part of [[Osm2city.py]], reuses some of its infrastructure and therefore the repository, installation and workflow are basically the same and will therefore not be described here.
+
+== Features ==
+
+{| class="wikitable sortable"
+|-
+! Feature !! State !! Comment
+|-
+| Reads nodes and lines related to OSM power and aerialways. ||  {{done}} || 
+|-
+| Creates power lines and minor power lines by placing towers and poles into the scenery. ||  {{done}} || 
+|-
+| Creates cables along power lines and aerialways including sagging.  || {{done}} || 
+|-
+| Creates aerialways (e.g. skilifts) by placing pylons and stations into the scenery. || {{progressbar|50}} || Right now everything is a t-bar and no explicit stations at both ends / mostly lack of shared models
+|-
+| Process overhead cable markers, see e.g. [http://forum.flightgear.org/viewtopic.php?f=5&t=20665&p=191570#p191570 FG Forum request]. || {{not done}} || might not be possible due to lack of OSM tags
+|-
+| Create overhead lines (pylons and cables) for electrified railways. || {{progressbar|70}} || 1 mast per track / need to finish shared model for buffer_stop
+|-
+| Create street lamps along streets in built up areas. || {{progressbar|60}} || Streetlamps are placed - however missing lightmap (alignment with roads.py) and taking number of lanes into account plus clustering
+|-
+| Populate the scenery with wind turbines (electricity). || {{not done}} ||
+|}
+
+''All placement of objects and generation of on-the-fly objects like cables are based on OSM data, topology in OSM as well as heuristics.''
+
+== Parameters ==
+The file params.ini might be updated with the following parameters for customizing how the scenery is populated - you might need to append the parameters to the file if they do not exist in order to override the default values in the program.
+
+Please note that many parameters below are written PARAMETER_XYZ_'''*'''. The '''*''' value can be ''POWER_LINE'', ''POWER_MINOR_LINE'', ''AERIALWAY_CABLE_CAR'', ''AERIALWAY_CHAIR_LIFT'', ''AERIALWAY_DRAG_LIFT'', ''AERIALWAY_GONDOLA'', ''AERIALWAY_GOODS'', ''OVERHEAD_LINE''.
+
+{| class="wikitable"
+! Parameter !! Suggested value !! Remarks
+|-
+| C2P_PROCESS_POWERLINES || True || Whether power lines (major and minor lines) should be added to the scenery
+|-
+| C2P_PROCESS_AERIALWAYS || True || Whether aerialways should be added to the scenery
+|-
+| C2P_PROCESS_OVERHEAD_LINES || True || Whether overhead line masts and cables should be added to the scenery for electrified tracks
+|-
+| C2P_PROCESS_STREETLAMPS || True || Whether streetlamps should be placed along roads within commercial / industrial / residential / retail land-use
+|-
+| C2P_CLUSTER_POWER_LINE_MAX_LENGTH || 300 || Each powerline has segments of cables delimited by pylons. The longer the value the better clustering and the better the performance. However due to rounding errors the longer the length per cluster the larger the error of cables (i.e. they might not connect at the right place.
+|-
+| C2P_CLUSTER_AERIALWAY_MAX_LENGTH || 300 || Same as above for aerialways.
+|-
+| C2P_CLUSTER_OVERHEAD_LINE_MAX_LENGTH || 130 || Same as above for railway overhead line cables. The value is typically shorter than for the above due more narrow curves.
+|-
+| C2P_CABLES_NO_SHADOW || True || Drawing shadows for cables might drain performance. If set to True a noshadow animation is included.
+|-
+| C2P_RADIUS_* || 0.05 || The radius for the cable. The cable will be a triangle with side length 2*radius. In order to be better visible the radius might be chosen larger than in real life. Typically powerlines would be around 0.05-0.1 (meter), aerialways 0.03-0.05, railway overhead 0.02.
+|-
+| C2P_RADIUS_TOP_LINE || 0.02 || The radius cables at the top (if existing), which have another function than the main function and therefore a smaller radius.
+|-
+| C2P_EXTRA_VERTICES_* || 3 || The number of extra points between 2 pylons to simulate sagging of the cable. If 0 is chosen or if CATENARY_A is 0 then no sagging is calculated, which is better for performances (less realistic). 3 is normally a good compromise - for cable cars or major power lines with very long distances a value of 5 or higher might be suitable
+|-
+| C2P_CATENARY_A_* || 1500 || This value determines the sagging of the cable. The value for catenary_a can be experimentally determined by using osm2pylon.test_catenary. Or you can play with the values and compare in FG how it looks. Probably you should go with the program's default. The more sagging per distance, the smaller the value should be chosen (e.g. overhead lines should use a value of about 600.
+|-
+| C2P_CATENARY_MIN_DISTANCE || 30 || The minimum distance between two pylons to take sagging using a catenary function into account.
+|-
+| C2P_POWER_LINE_ALLOW_100M || False || Prevents using 100m towers in some situations, where they might not exist in reality.
+|-
+| C2P_STREETLAMPS_MAX_DISTANCE_LANDUSE || 100 || Below the maximum distance from a land-use a street gets street lamps if C2P_PROCESS_STREETLAMPS is True
+|-
+| C2P_STREETLAMPS_RESIDENTIAL_DISTANCE || 40 || The default distance between street lamps along residential and service streets
+|-
+| C2P_STREETLAMPS_OTHER_DISTANCE || 70 || The default distance between street lamps along other streets
+|-
+| C2P_STREETLAMPS_MIN_STREET_LENGTH || 20 || The minimum length of a street necessary to consider for placing street lamps
+|}
+
+== Workflow ==
+In general you need to follow the workflow in [[Osm2city.py#Workflow]] and adapt the parameters. 
+
+As a workaround for missing shared models you also need to put the files in this [https://dl.dropboxusercontent.com/u/85726732/Models.zip zip-file] into <code>[[$FG_ROOT]]</code>.
+
+== Related content ==
+* [[Osm2city.py]]
+* [http://forum.flightgear.org/viewtopic.php?f=5&t=20665 FG Forum: How to make lines between power pylons?]
+* [http://lift-world.info Lift-world database]
+* [http://www.seilbahn.net Seilbahn.net]
+* [http://www.bergbahnen.org/ Swiss Bergbahnen.org]
+* [http://www.leitner-ropeways.com/Home Company: Leitner]
+* [http://www.doppelmayr.com/en/ Company: Doppelmayr / Garventa]
+* [http://en.wikipedia.org/wiki/Catenary Catenary mathematical function]
+* [http://www.spaceagecontrol.com/calccabl.htm Displacement Cable Sag Error Calculator]
+* [http://www.mathdemos.org/mathdemos/catenary/catenary.html Mathdemo catenary function]
+
+
+[[Category:Scenery software]]

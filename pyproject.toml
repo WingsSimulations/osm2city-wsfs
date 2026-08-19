@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: (C) 2026, rick@vanosten.net
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+[build-system]
+requires = ["setuptools>=45"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osm2city"
+version = "0.1.0"
+description = "Generate 3D city models for FlightGear from OpenStreetMap data"
+authors = [
+    { name = "rick@vanosten.net" },
+]
+license = { text = "GPL-2.0-or-later" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "descartes==1.1.0",
+    "shapely==2.1.2",
+    "networkx==3.6.1",
+    "requests==2.33.1",
+    "pyproj==3.7.2",
+    "scipy==1.17.1",
+    "protobuf==4.21.12", # must match the OS-level C++ protobuf version
+    "matplotlib==3.10.8",
+    "pygltflib==1.16.5",
+]
+
+[project.scripts]
+build-tiles = "osm2city.main:main"
+
+[project.urls]
+Repository = "https://github.com/osm2city/osm2city"
+
+[tool.setuptools.packages.find]
+include = ["osm2city*"]

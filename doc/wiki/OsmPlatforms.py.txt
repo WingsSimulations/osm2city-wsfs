@@ -1,0 +1,15 @@
+{{OSM Navigation}}
+Populates a FlightGear scenery offline with platforms based on OpenStreetMap data. 
+
+This script is a part of [[Osm2city.py]], reuses some of its infrastructure and therefore the repository, installation and workflow are basically the same and will therefore not be described here.
+
+== Features ==
+* Reads nodes and lines related to OSM platforms (railway=platform). {{done}}
+* Create shelters and benches. {{not done}}
+
+== Parameters ==
+Currently only the main parameters are used.
+
+== Related content ==
+* [[Osm2city.py]]
+[[Category:Scenery software]]

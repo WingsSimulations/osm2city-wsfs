@@ -1,0 +1,20 @@
+{{OSM Navigation}}
+[[File:Wick harbour created using osm2city and osm2piers.png|thumb|Wick scenery benefits greatly using generated harbours.]]
+
+Populates a FlightGear scenery offline with piers and boats based on OpenStreetMap data. 
+
+This script is a part of [[Osm2city.py]], reuses some of its infrastructure and therefore the repository, installation and workflow are basically the same and will therefore not be described here.
+
+== Features ==
+* Reads nodes and lines related to OSM piers (man_made=pier). {{done}}
+* Creates static ships/boats along the pier. {{done}}
+* Parameters to control placing of ships {{not done}}
+
+All placement of objects and generation of on-the-fly objects like ships is based on OSM data, topology in OSM as well as heuristics.
+
+== Parameters ==
+Currently only the main parameters are used.
+
+== Related content ==
+* [[Osm2city.py]]
+[[Category:Scenery software]]

@@ -1,0 +1,27 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+
+## [1.1.0] - 2025-10-03
+
+### Added
+
+- Add platforms to blocked areas for trees
+- Better error handling for broken pipes in fgelev ws3
+- Type safety for osm_id, tags and refs
+- Generic module to generate glTF output
+
+
+## [1.0.0] - 2025-05-10
+
+### Added
+
+- This CHANGELOG file.
+
+### Changed
+
+- Too much to mention. This is just an arbitrary time to start versioning across osm2city, osm2gear etc.
